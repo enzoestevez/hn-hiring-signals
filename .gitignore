@@ -1,0 +1,20 @@
+# entornos
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# claves (no hay en la etapa 1, pero que quede la regla desde el commit 1)
+.env
+*.key
+
+# el corpus crudo SI va al repo: son ~6 MB y sin el no se puede reproducir
+# nada. Lo que no va es lo derivado, que se regenera corriendo el codigo.
+reports/*.json
+reports/*.csv
+!reports/.gitkeep
+
+# sistema
+.DS_Store
+Thumbs.db
+desktop.ini
