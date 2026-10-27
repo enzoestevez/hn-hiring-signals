@@ -54,7 +54,11 @@ jobs:
             git push
           fi
 
-      # Va DESPUES del commit a proposito: el dato se guarda igual y la falla
-      # se ve como corrida en rojo, con notificacion, en vez de perderse.
+      # Los dos van DESPUES del commit a proposito: el dato se guarda igual y
+      # la falla se ve como corrida en rojo, con notificacion, en vez de
+      # perderse en el log.
       - name: Chequeos de salud (falla la corrida si algo se rompio)
         run: python src/mensual.py --estricto
+
+      - name: Deteccion de deriva (entrada y proceso, no salida)
+        run: python src/deriva.py

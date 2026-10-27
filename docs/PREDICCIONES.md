@@ -1377,3 +1377,137 @@ Es la misma regla de la etapa 1 aplicada de nuevo: **no se espera a resolver
 el mecanismo, se elige la afirmación válida bajo todas las hipótesis que
 sobreviven.** Acá no sobrevive ninguna afirmación fuerte, y eso también es un
 resultado.
+
+---
+
+# ETAPA 7 — DETECCIÓN DE DERIVA · pre-registro 27/10/2026
+
+El detector que había era la tasa de meta con banda de 3σ. Dispara recién
+arriba del **7,1%** contra un máximo observado de 5,1%: ve roturas, no
+degradación. Esto lo reemplaza.
+
+## El problema real
+
+El clasificador puede empeorar **sin que el agregado se mueva**: si los
+errores en las dos direcciones se compensan —que es exactamente lo que ya
+pasa, 5 FP contra 2 FN en `test`— la tasa de meta queda igual y la precisión
+por post se derrumba. Y no hay etiquetas nuevas todos los meses para medirlo.
+
+**Hay que detectar el cambio en la ENTRADA y en el PROCESO, no en la salida.**
+
+## Fragilidad que esto vigila, dicha de frente
+
+**El 88,5% de las decisiones las toma UNA sola regla**: el encabezado
+`Empresa | Puesto | Ubicación`. Si la convención del hilo cambia, el 88,5%
+de las decisiones cambia de golpe. Es el riesgo concentrado del clasificador
+y es justo lo que el detector 1 mira.
+
+## Los cuatro detectores y su sensibilidad medida
+
+| # | detector | media | 3σ | dispara si se mueve |
+|---|---|---|---|---|
+| 1 | share del motivo "encabezado de vacante" | 88,5% | 1,3% | **4,0 pts** (4,5% relativo) |
+| 2 | % de posts con 2+ pipes | 88,9% | 1,7% | 5,0 pts |
+| 2 | % de posts con URL | 85,3% | 2,6% | 7,8 pts |
+| 2 | largo mediano del post | 1.019 ch | 57 | 171 ch |
+| 3 | flips de etiqueta en casi-duplicados entre meses | 0 de 453 grupos | — | 1 flip |
+| 4 | cola de revisión: posts decididos por regla débil | 4,5% | — | ~14/mes |
+
+El detector 1 es **20 veces más sensible en términos relativos** que el que
+había: la tasa de meta tiene que casi duplicarse para disparar (de 3,7% a
+7,1%), el motivo dominante solo tiene que moverse un 4,5% de su valor.
+
+## Lo que cada uno NO puede hacer
+
+- **Detector 3 está inerte hoy, y lo digo.** El clasificador es determinista:
+  texto idéntico da etiqueta idéntica, siempre. Los 453 grupos de avisos casi
+  iguales entre meses dieron **0 flips**, que es un resultado de robustez
+  —no se tambalea ante reescrituras cosméticas— pero significa que como
+  *detector* no puede sonar mientras no haya un LLM en el loop. Se construye
+  ahora porque el día que entre un modelo es el único chequeo de consistencia
+  que no cuesta etiquetas.
+- **Detector 4 no mide precisión.** Revisar solo los posts de baja confianza
+  encuentra más errores que el promedio por construcción. Es un **canario**,
+  no una tasa de acierto. Es la misma trampa de adjudicación asimétrica que
+  ya nos mordió con el estrato limpio.
+
+## Un detector sin probar no funciona: el test de inyección
+
+No alcanza con definirlos. Se les inyecta una degradación sintética al último
+mes y se mira cuáles suenan: se le saca el encabezado de pipes a un X% de los
+posts, que es exactamente la falla que más duele.
+
+**Predicción registrada:**
+
+| degradación inyectada | ¿suena el detector 1? |
+|---|---|
+| 10% de los posts | **sí**, con margen |
+| 5% | **sí**, apenas |
+| 2% | **no** |
+
+Mecanismo: sacar el encabezado a un X% mueve el share del motivo dominante
+unos X puntos, contra un umbral de 4,0.
+
+**Firma de falla:** si el detector suena con el 2%, la banda está demasiado
+apretada y va a dar falsos positivos todos los meses. Si NO suena con el 10%,
+está roto y no sirve para nada.
+
+**Qué decisión cambia:** si el detector 1 no distingue 2% de 10%, no se
+publica como detector — se publica la cola de revisión sola y se dice que la
+deriva fina necesita etiquetas, que es la respuesta honesta.
+
+## ETAPA 7 — resultado
+
+| degradación inyectada | predije | midió |
+|---|---|---|
+| 2% | no suena | **no suena** ✓ |
+| 5% | suena apenas | **no suena** ✗ |
+| 10% | suena | **suena** ✓ |
+| 20% | — | suena (2 de 5 detectores) |
+
+**2 de 3.** Acumulado del proyecto: **7 aciertos en 27**.
+
+### Por qué falló el 5%, que es lo interesante
+
+Mi mecanismo decía: *"sacar el encabezado a un X% mueve el share del motivo
+dominante unos X puntos"*. **Es falso: lo mueve 0,6 X.** Medido: 10% → −5,7
+puntos, 20% → −11,7.
+
+La razón es que la regla del encabezado tiene **redundancia**: matchea
+`Empresa | Puesto` y también `Empresa - Puesto`. Romper los pipes deja a
+muchos posts todavía clasificados por el guión.
+
+> **La redundancia que vuelve robusto al clasificador es la misma que vuelve
+> ciego al detector.** No son dos propiedades separadas: cada camino
+> alternativo que agregás para que el sistema no se caiga es un camino por
+> el que una degradación pasa sin hacer ruido. No lo había pensado y no se
+> arregla eligiendo mejor un umbral.
+
+### Sensibilidad real, que es la que se publica
+
+El detector 1 engancha una degradación que afecte a **~8% o más** de los
+posts de un mes. No al 5%.
+
+**No se bajó el umbral para que sonara el 5%.** Con 12 meses de historia,
+pasar a 2σ daría un falso positivo cada ~4 meses entre los 5 detectores, y
+un detector que grita seguido se desactiva solo en la cabeza del que lo mira.
+Se reporta la sensibilidad medida y listo.
+
+**La mejora correcta, anotada y no hecha**: separar el motivo "encabezado"
+en sus dos caminos (pipes y guión) y vigilarlos por separado. Eso recupera
+la sensibilidad sin tocar ningún umbral, porque ataca la causa —la
+redundancia— en vez del síntoma. Queda como trabajo futuro con el
+diagnóstico ya escrito.
+
+### Lo que sí quedó funcionando
+
+- **Detector 1** (mezcla de motivos): 20× más sensible en términos relativos
+  que el que había. La tasa de meta tenía que casi duplicarse; este se mueve
+  un 4,5% de su valor.
+- **Detector 2** (formato de entrada): avisa antes de que el cambio llegue
+  a la clasificación.
+- **Detector 3** (casi-duplicados): **453 grupos entre meses, 0 flips.** Hoy
+  es un resultado de robustez, no un detector — el clasificador es
+  determinista. Pasa a ser el chequeo central el día que entre un LLM.
+- **Detector 4** (cola de revisión): ~14 posts de baja confianza por mes.
+  Canario, no tasa de acierto.
