@@ -291,11 +291,11 @@ def main() -> int:
         print("=" * 70)
         print(f"  clasificados EMPRESA        {emp:>7,}")
         print(f"  clasificados META           {len(posts)-emp:>7,}   ({(len(posts)-emp)/len(posts):.2%})")
-        print(f"\n  estimacion humana           {3902:>7,}   IC [3.800, 3.973]")
+        print(f"\n  estimacion humana           {3907:>7,}   IC [3.804, 3.977]")
         print(f"  analisis publicado          {3909:>7,}")
-        print(f"  diferencia contra el humano {emp-3902:>+7,}")
+        print(f"  diferencia contra el humano {emp-3907:>+7,}")
         print(f"  diferencia contra publicado {emp-3909:>+7,}")
-        print("  dentro del IC humano" if 3800 <= emp <= 3973 else "  <-- FUERA del IC humano")
+        print("  dentro del IC humano" if 3804 <= emp <= 3977 else "  <-- FUERA del IC humano")
         # empresas DISTINTAS: el corpus repite el 17%
         import collections
         g = collections.defaultdict(int)

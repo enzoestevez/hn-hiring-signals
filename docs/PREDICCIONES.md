@@ -1187,14 +1187,14 @@ cálculo.
 | | |
 |---|---|
 | censo por reglas | **3.903 empresas** (151 meta, 3,72%) |
-| estimación humana | 3.902 [3.800, 3.973] |
+| estimación humana | 3.907 [3.804, 3.977] |
 | análisis publicado | 3.909 |
 | costo | **USD 0,00** |
 
 ## El +1 NO es precisión, y hay que decirlo así
 
-El clasificador cae a 1 post del número humano. **Eso es suerte, no
-exactitud.** En `test` se equivocó en 7 de 132 (5,3%); proyectado al corpus
+El clasificador cae a 4 posts del número humano, sobre 3.900. **Eso es
+cancelación, no exactitud.** En `test` se equivocó en 7 de 132 (5,3%); proyectado al corpus
 son ~215 posts mal clasificados individualmente, que se cancelan porque los
 falsos positivos y los falsos negativos quedaron casi balanceados (5 FP, 2 FN).
 
@@ -1203,7 +1203,7 @@ del intervalo pero eso no es un éxito; un clasificador malo puede caer adentro
 porque los errores se cancelan"*. Acá kappa es alto, así que no es el caso
 patológico — pero el margen de 1 post es más fino de lo que el método puede
 resolver. **La afirmación honesta es "cae dentro del intervalo", no "acierta
-por 1".**
+por 4".**
 
 ## Por qué kappa 0,870 tampoco se puede festejar
 
@@ -1245,7 +1245,7 @@ Entre los 3.903 posts clasificados empresa hay **3.048 textos distintos**: el
 conteo de POSTS y el de EMPRESAS difieren en **855 (21,9%)**.
 
 3.909 es un conteo correcto de **posts de contratación**, y lo reprodujimos
-dos veces (3.902 a mano, 3.903 por reglas). Pero cualquiera lo va a leer como
+dos veces (3.907 a mano, 3.903 por reglas). Pero cualquiera lo va a leer como
 "empresas contratando", y esa magnitud es ~3.048. **Nadie había verificado
 ninguno de los dos números.**
 

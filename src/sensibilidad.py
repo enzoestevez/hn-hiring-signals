@@ -67,22 +67,19 @@ def main():
     N_h = {d["estrato"]: d["N_corpus"] for d in diseno["estratos"]}
     base = jl("oro.jsonl")
 
-    corr = [dict(f) for f in base]
-    tocados = 0
-    for f in corr:
-        if f["id"] in CORRECCIONES:
-            if f["es_empresa"]:
-                print(f"AVISO: {f['id']} ya estaba en True; no se toca")
-            else:
-                f["es_empresa"] = True
-                tocados += 1
-    print(f"correcciones aplicadas: {tocados} de {len(CORRECCIONES)}\n")
-    for i, por_que in CORRECCIONES.items():
-        print(f"  {i}  {por_que}")
+    # oro.jsonl ya trae las dos versiones de cada etiqueta: la cruda, tal como
+    # salio del etiquetado, y la final despues de adjudicar. Aca se comparan.
+    crudo = [dict(f, es_empresa=f["es_empresa_crudo"]) for f in base]
+    tocados = sum(1 for f in base if f["es_empresa"] != f["es_empresa_crudo"])
+    print(f"etiquetas corregidas respecto del etiquetado crudo: {tocados} de {len(base)}"
+          f"  ({tocados/len(base):.1%})\n")
+    for f in base:
+        if f["es_empresa"] != f["es_empresa_crudo"]:
+            print(f"  {f['id']}  [{f['origen']}]  {f['nota'][:78]}")
     print()
 
     filas = []
-    for nombre, datos in (("referencia actual", base), ("con las 5 correcciones", corr)):
+    for nombre, datos in (("etiquetado crudo", crudo), ("referencia adjudicada", base)):
         t, (lo, hi), e, (elo, ehi), p_l = estimar(datos, N_h)
         filas.append((nombre, t, lo, hi, e, elo, ehi, p_l))
 
@@ -93,9 +90,7 @@ def main():
     print()
     print(f"  p_limpio: {filas[0][7]:.2%}  ->  {filas[1][7]:.2%}")
     mov = filas[1][4] - filas[0][4]
-    print(f"\n  movimiento de la estimacion: {mov:+,.1f} empresas", end="   ")
-    print("OK (<=50, consistente con 5 etiquetas)" if abs(mov) <= 50
-          else "<-- FUERA: solo cambiaron 5 etiquetas, hay un error de ponderacion")
+    print(f"\n  movimiento de la estimacion: {mov:+,.1f} empresas")
     print(f"  predicho 3.880-3.910  ->  medido {filas[1][4]:,.0f}", end="   ")
     print("dentro" if 3880 <= filas[1][4] <= 3910 else "<-- FUERA")
     print(f"\n  el analisis publicado reporta {PUBLICADO:,}")

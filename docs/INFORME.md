@@ -23,16 +23,16 @@ no fue "¿está mal?" sino: **¿cuánto vale ese número y cómo se sabría?**
 
 | magnitud | valor | cómo se obtuvo |
 |---|---|---|
-| posts de contratación (humano) | **3.902** [3.800, 3.973] | muestra estratificada de 266 posts etiquetados a mano, reponderada, IC por bootstrap |
+| posts de contratación (humano) | **3.907** [3.804, 3.977] | muestra estratificada de 266 posts etiquetados a mano, reponderada, IC por bootstrap |
 | posts de contratación (reglas) | **3.903** | clasificador determinista sobre los 4.054 posts |
 | **empresas distintas** | **~3.048** | textos únicos entre los clasificados empresa |
 | análisis publicado | 3.909 | — |
 
-Las tres mediciones independientes de "posts" caen en 7 unidades. **La
+Las tres mediciones independientes de "posts" caen en 6 unidades. **La
 magnitud "empresas" difiere en 855.**
 
-> El "+1" entre el método humano y el de reglas **no es precisión, es
-> cancelación.** El clasificador se equivoca en el 5,3% de los posts
+> La coincidencia entre el método humano y el de reglas (4 posts sobre
+> 3.900) **no es precisión, es cancelación.** El clasificador se equivoca en el 5,3% de los posts
 > individuales (~215 en el corpus); los falsos positivos y negativos quedaron
 > balanceados. La afirmación defendible es *"cae dentro del intervalo"*, no
 > *"acierta por uno"*.

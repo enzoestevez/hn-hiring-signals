@@ -7,9 +7,16 @@ hiring for AI and data roles actually ask for, and has it changed?**
 Not scraped opinions. Not a survey. The raw text of what companies wrote when
 they were spending money to hire.
 
-> **Status: stage 1 of 7.** This README describes the whole design, and marks
-> precisely what is built and what is not. Nothing below is claimed as a result
-> until it is measured. The status table is the honest part.
+> **Status: stages 1–3 of 7 complete. Total cost: USD 0.00.**
+>
+> **Headline result:** the published count of 3,909 hiring posts reproduces —
+> 3,907 by hand-labelled stratified sample, 3,903 by a rules classifier — and
+> nobody had verified it before. But it counts *posts*, not *companies*:
+> **17% of the corpus is republished text**, so the number of distinct
+> companies is about **3,048**, roughly 22% lower.
+>
+> Full write-up: [`docs/INFORME.md`](docs/INFORME.md) (Spanish).
+> Every prediction, hit or miss: [`docs/PREDICCIONES.md`](docs/PREDICCIONES.md).
 
 ---
 
@@ -77,8 +84,8 @@ breaking terms of service cannot be published or defended in an interview.
 | # | stage | what it produces | status |
 |---|---|---|---|
 | 1 | **Raw corpus** | every top-level post from 13 threads, stored verbatim, resumable, counted | **built** |
-| 2 | **Human ceiling** | a hand-labelled sample, double-labelled blind, to measure how well *I* can do this task | not started |
-| 3 | **Measured extraction** | structured fields per post, with per-field precision and recall against the labelled set | not started |
+| 2 | **Human ceiling** | a hand-labelled sample, double-labelled blind, to measure how well *I* can do this task | **built** — `es_empresa` kappa **0.89**; `pide_ia`, `n_puestos` and `visa` fail their ceiling and are dropped |
+| 3 | **Measured extraction** | structured fields per post, with per-field precision and recall against the labelled set | **built** — rules only, no LLM: kappa **0.870** on held-out, census **3,903** |
 | 4 | **Unattended monthly run** | GitHub Actions cron: new thread each month, extracted, with the run log as the audit trail | not started |
 | 5 | **The AI/data segment** | what those companies ask for, and how it moved across 13 months | not started |
 | 6 | **Published panel** | the numbers, with the measurement error shown next to each one | not started |
@@ -88,6 +95,29 @@ Stage 2 comes before stage 3 on purpose. **You cannot report extraction accuracy
 without a ceiling to measure it against**, and in the first project that ceiling
 turned out not to be a single number — it split by document format, 98.7% versus
 72.7%. The global figure was a comfortable lie.
+
+## What the measurement found
+
+| | |
+|---|---|
+| hiring posts, hand-labelled sample | **3,907** [3,804, 3,977] |
+| hiring posts, rules classifier | **3,903** |
+| distinct companies | **~3,048** |
+| published analysis reports | 3,909 |
+| registered predictions hit | **2 of 19** |
+| cost | **USD 0.00** |
+
+Three findings that were not in the plan:
+
+1. **A blind double pass measures whether a labeller repeats himself, not
+   whether he is right.** One company was mislabelled four times, identically —
+   perfect agreement, perfect error. 9 of 266 reference labels (3.4%) were
+   wrong, all in the same direction, and the double pass found only 2 of them.
+2. **17% of the corpus is republished text.** That turns the corpus into a
+   free consistency instrument the design never planned for: identical text
+   with opposite labels is a guaranteed error, no second annotator required.
+3. **No LLM was needed.** A 180-line deterministic classifier lands inside the
+   human interval. The decision rule for that was registered in advance.
 
 ## What is built
 
