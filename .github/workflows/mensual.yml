@@ -1,0 +1,60 @@
+name: corrida mensual
+
+# El hilo nuevo sale el dia 1. Se corre el 2 para agarrarlo ya publicado y,
+# de paso, cerrar el mes anterior, que sigue recibiendo posts un par de dias.
+# Minuto 37 a proposito: a las 00 esta todo el mundo encolado.
+on:
+  schedule:
+    - cron: "37 6 2 * *"
+  workflow_dispatch:        # para poder dispararlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write           # commitea datos.json y los posts nuevos
+
+concurrency:
+  group: mensual
+  cancel-in-progress: false
+
+jobs:
+  correr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Sin dependencias: bajar.py y clasificar.py son stdlib pura.
+      # Si algun dia hace falta un requirements.txt, va aca.
+
+      - name: Bajar el hilo nuevo y recalcular el panel
+        run: |
+          # Ventana de dos meses: agarra el hilo nuevo y los posts que
+          # llegaron tarde al anterior. bajar.py es reanudable y append-only,
+          # asi que pedir de mas no duplica nada.
+          DESDE=$(date -u -d "2 months ago" +%Y-%m)
+          echo "refrescando desde $DESDE"
+          python src/mensual.py --refrescar "$DESDE"
+
+      - name: Commitear si cambio algo
+        run: |
+          git config user.name  "corrida mensual"
+          git config user.email "actions@github.com"
+          git add data/posts.jsonl data/hilos.json docs/panel/datos.json
+          if git diff --cached --quiet; then
+            echo "sin cambios"
+          else
+            MES=$(date -u +%Y-%m)
+            git commit -m "datos: corrida mensual $MES
+
+            Generado por .github/workflows/mensual.yml. El panel se
+            redespliega solo al commitear sobre main."
+            git push
+          fi
+
+      # Va DESPUES del commit a proposito: el dato se guarda igual y la falla
+      # se ve como corrida en rojo, con notificacion, en vez de perderse.
+      - name: Chequeos de salud (falla la corrida si algo se rompio)
+        run: python src/mensual.py --estricto

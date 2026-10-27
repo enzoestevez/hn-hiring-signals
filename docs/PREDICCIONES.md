@@ -1259,3 +1259,121 @@ Lo que un LLM podría mejorar es el 5,3% de error por post, no el agregado. Y
 como el techo humano es 0,89, el margen total disponible es chico: queda
 registrado como trabajo futuro con el techo ya medido, que es justamente lo
 que permite saber que el margen es chico antes de gastar un peso.
+
+---
+
+# ETAPAS 4–7 — PANEL Y CORRIDA MENSUAL · pre-registro 27/10/2026
+
+Escrito antes de la primera línea de `src/mensual.py`.
+
+## Qué se construye
+
+Un agregador mensual que (1) busca el hilo nuevo con el `buscar_hilos` que ya
+existe, (2) baja lo que falte llamando a `bajar.py` por subproceso —**no se
+copia su código**, que fue el error de p02—, (3) clasifica todo con
+`clasificar.py`, (4) escribe `docs/panel/datos.json` y (5) corre sus propios
+chequeos de deriva. Después, un panel estático que lee ese JSON, y un cron de
+GitHub Actions que commitea el resultado.
+
+## Predicciones
+
+| magnitud | predicción | mecanismo |
+|---|---|---|
+| suma de empresas de los 13 meses | **exactamente 3.903** | es el mismo censo, partido por mes: tiene que cerrar al post |
+| empresas por mes | **230–330** | 4.054 posts / 13 meses ≈ 312, con ~96% de empresas |
+| duplicados DENTRO de un mes | **< 2%** | una empresa no repite el aviso en el mismo hilo; el 17% es entre meses |
+| posts con vocabulario de IA | **45%–65%** | en la submuestra del doble ciego dieron 33 de 51 empresas (64,7%), y esa submuestra sobre-representa al estrato sospechoso |
+
+**Predicción cualitativa:** la serie de vocabulario de IA **no va a mostrar una
+tendencia limpia** a lo largo de los 13 meses. Mecanismo: 13 puntos con ~300
+posts cada uno dan un error de muestreo de ±3 puntos por mes, y cualquier
+movimiento real del mercado en un año es del mismo orden.
+
+## Firmas de falla
+
+1. **La suma por mes ≠ 3.903** → bug de agregación. No es un hallazgo.
+2. **Algún mes con 0 o más de 500 empresas** → falló la búsqueda del hilo o se
+   bajó dos veces.
+3. **Tendencia perfectamente monótona en la serie de IA** → sospechoso. Lo más
+   probable no es el mercado sino la edad del hilo (los viejos perdieron posts,
+   ya medido: el descarte va de 9% a 16%).
+4. **La deriva marca TODOS los meses, o NINGUNO nunca** → la banda está mal
+   calculada. Por eso la banda de cada mes se computa **dejando ese mes
+   afuera**: incluirlo hace que casi nunca pueda caerse fuera de su propia
+   banda, que es el mismo error de "evaluar con el dato de entrenamiento".
+
+## Qué decisión cambia
+
+- Si la serie de IA no tiene tendencia, **la respuesta a la pregunta original
+  del proyecto es "no se detecta cambio"**, y eso se publica así. No se sale a
+  buscar un recorte de meses donde sí se vea algo.
+- El panel muestra el error de medición **al lado de cada número**. El que no
+  tiene validación —el vocabulario de IA, con kappa humano 0,38— va marcado
+  como no validado, no escondido.
+
+---
+
+# ETAPAS 4–6 — RESULTADO · 27/10/2026
+
+| predicción | medido | |
+|---|---|---|
+| suma de empresas por mes = **3.903 exacto** | 3.903 | **acerté** |
+| empresas por mes **230–330** | **217–389** | **fallé** |
+| duplicados dentro del mes **< 2%** | 0,10% | **acerté** |
+| vocabulario de IA **45%–65%** | 61,4% | **acerté** |
+| "la serie de IA **no** va a mostrar tendencia limpia" | +0,92 pts/mes, **t=3,49** | **fallé** |
+
+**3 de 5.** Acumulado del proyecto: **5 aciertos en 24**.
+
+## El patrón de 24 predicciones, que es el verdadero resultado
+
+Las que acerté son todas **aritméticas**: un cierre contable, una tasa de
+duplicados, un porcentaje que ya había visto en una submuestra, el movimiento
+exacto de corregir 5 etiquetas de peso conocido. Las que fallé son todas
+**sobre el mundo**: cuántos posts habría, cuánto se borra, si el mercado se
+movió, qué tan consistente sería un humano.
+
+No es casualidad y no mejoró con la práctica: fallé la 1 y fallé la 24.
+**El pre-registro no me volvió mejor prediciendo; me volvió imposible
+convencerme después de que lo había previsto.** Esa es toda su función.
+
+## La firma de falla que disparó, y por qué no se tocó el umbral
+
+El detector de deriva marcó **0 de 13 meses**, que es una de las dos
+condiciones que yo había registrado como "revisar la banda". Se revisó:
+con 12 meses de historia, la banda de 3σ recién dispara arriba del **7,1%** de
+meta-comentarios, contra un máximo observado de 5,1%.
+
+**No es un bug y no se bajó el umbral hasta que algo sonara** — eso sería
+elegir el umbral por el resultado. Es una limitación real que se reporta:
+con esta varianza y 12 puntos, el detector sirve para **roturas gruesas**
+(el hilo no se encontró, la clasificación se degeneró, el volumen se
+desplomó), no para cambios de mercado. Se agregaron esos tres chequeos, que
+son lo que un cron desatendido necesita de verdad, y el panel dice en voz
+alta cuál es su sensibilidad.
+
+## El hallazgo que vale: una tendencia significativa que no se puede afirmar
+
+El vocabulario de IA sube **+0,92 pts/mes (t=3,49)**, de 57,4% a 67,2%. Casi
+cualquier panel publicaría eso como titular.
+
+Pero el gradiente de supervivencia **ya estaba medido en la etapa 1**: los
+hilos nuevos descartan más posts (de ~7% a ~17%), y **un post borrado no tiene
+texto**, así que es imposible testear si mencionaba IA. Se acota el confusor
+en vez de ignorarlo: se recalcula la pendiente suponiendo que **ningún** post
+borrado mencionaba IA, que es el supuesto más favorable a la explicación
+alternativa.
+
+| escenario | pendiente | t |
+|---|---|---|
+| observado | +0,92 pts/mes | 3,49 **significativa** |
+| peor caso | +0,34 pts/mes | 1,23 **no significativa** |
+
+**La tendencia no sobrevive.** La dirección probablemente sea positiva, pero
+la magnitud no está identificada y la significancia no es robusta. El panel lo
+publica así, con las dos líneas dibujadas una al lado de la otra.
+
+Es la misma regla de la etapa 1 aplicada de nuevo: **no se espera a resolver
+el mecanismo, se elige la afirmación válida bajo todas las hipótesis que
+sobreviven.** Acá no sobrevive ninguna afirmación fuerte, y eso también es un
+resultado.

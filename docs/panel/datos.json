@@ -1,0 +1,310 @@
+{
+ "generado": "2026-10-27T20:37:48+00:00",
+ "corpus": {
+  "posts_con_texto": 4054,
+  "empresas": 3903,
+  "empresas_distintas": 3045,
+  "repeticion": 0.2198,
+  "meses": 13
+ },
+ "referencia_humana": {
+  "estimacion": 3907,
+  "ic95": [
+   3804,
+   3977
+  ],
+  "muestra": 266,
+  "doble_ciego": 80,
+  "kappa_es_empresa": 0.89,
+  "etiquetas_corregidas": 9
+ },
+ "publicado": {
+  "empresas": 3909,
+  "puestos": 9194,
+  "validado": false
+ },
+ "clasificador": {
+  "tipo": "reglas deterministas, sin LLM",
+  "kappa_test": 0.87,
+  "acierto_test": 0.947,
+  "error_por_post": 0.053,
+  "techo_humano": 0.89
+ },
+ "vocabulario_ia": {
+  "que_mide": "fraccion de posts de empresa cuyo texto menciona vocabulario de IA",
+  "que_NO_mide": "si el puesto pide IA. Ese juicio no paso su techo humano (kappa 0,38)",
+  "acuerdo_con_juicio_humano": 0.706,
+  "validado": false
+ },
+ "tendencia_ia": {
+  "pendiente_observada_pts_mes": 0.92,
+  "t_observado": 3.49,
+  "pendiente_peor_caso_pts_mes": 0.34,
+  "t_peor_caso": 1.23,
+  "t_critico_95": 2.23,
+  "confusor": "los hilos nuevos descartan mas posts (de ~7% a ~17%). Un post borrado no tiene texto, asi que no se puede testear si era 'de IA'. El peor caso supone que NINGUN post borrado mencionaba IA.",
+  "conclusion": "la tendencia NO sobrevive al peor caso: no se puede afirmar que el vocabulario de IA haya subido"
+ },
+ "salud": {
+  "hilo_del_mes_encontrado": true,
+  "ultimo_mes": "2026-10",
+  "posts_del_ultimo_mes": 266,
+  "banda_posts_historica": [
+   227,
+   410
+  ],
+  "posts_fuera_de_banda": false,
+  "clasificacion_degenerada": false,
+  "meses_con_deriva": [],
+  "sensibilidad_deriva": "con 12 meses de historia la banda de 3 sigma recien dispara arriba del 7% de meta-comentarios, contra un maximo observado de 5,1%. Detecta roturas, no cambios de mercado."
+ },
+ "meses": [
+  {
+   "mes": "2025-10",
+   "hilo": 45438503,
+   "posts_con_texto": 341,
+   "empresas": 333,
+   "meta": 8,
+   "tasa_meta": 0.0235,
+   "textos_distintos_en_el_mes": 333,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 191,
+   "share_ia": 0.5736,
+   "abierto": false,
+   "piso_ia": 0.5121,
+   "banda_loo": [
+    0.0054,
+    0.0714
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2025-11",
+   "hilo": 45800465,
+   "posts_con_texto": 392,
+   "empresas": 383,
+   "meta": 9,
+   "tasa_meta": 0.023,
+   "textos_distintos_en_el_mes": 381,
+   "dup_dentro_del_mes": 2,
+   "menciona_ia": 233,
+   "share_ia": 0.6084,
+   "abierto": false,
+   "piso_ia": 0.5482,
+   "banda_loo": [
+    0.0056,
+    0.0713
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2025-12",
+   "hilo": 46108941,
+   "posts_con_texto": 377,
+   "empresas": 360,
+   "meta": 17,
+   "tasa_meta": 0.0451,
+   "textos_distintos_en_el_mes": 360,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 206,
+   "share_ia": 0.5722,
+   "abierto": false,
+   "piso_ia": 0.5323,
+   "banda_loo": [
+    0.0016,
+    0.0713
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-01",
+   "hilo": 46466074,
+   "posts_con_texto": 256,
+   "empresas": 246,
+   "meta": 10,
+   "tasa_meta": 0.0391,
+   "textos_distintos_en_el_mes": 245,
+   "dup_dentro_del_mes": 1,
+   "menciona_ia": 147,
+   "share_ia": 0.5976,
+   "abierto": false,
+   "piso_ia": 0.5069,
+   "banda_loo": [
+    0.0013,
+    0.0726
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-02",
+   "hilo": 46857488,
+   "posts_con_texto": 410,
+   "empresas": 389,
+   "meta": 21,
+   "tasa_meta": 0.0512,
+   "textos_distintos_en_el_mes": 388,
+   "dup_dentro_del_mes": 1,
+   "menciona_ia": 237,
+   "share_ia": 0.6093,
+   "abierto": false,
+   "piso_ia": 0.5512,
+   "banda_loo": [
+    0.003,
+    0.0688
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-03",
+   "hilo": 47219668,
+   "posts_con_texto": 317,
+   "empresas": 310,
+   "meta": 7,
+   "tasa_meta": 0.0221,
+   "textos_distintos_en_el_mes": 310,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 181,
+   "share_ia": 0.5839,
+   "abierto": false,
+   "piso_ia": 0.5084,
+   "banda_loo": [
+    0.0061,
+    0.071
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-04",
+   "hilo": 47601859,
+   "posts_con_texto": 329,
+   "empresas": 321,
+   "meta": 8,
+   "tasa_meta": 0.0243,
+   "textos_distintos_en_el_mes": 321,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 200,
+   "share_ia": 0.6231,
+   "abierto": false,
+   "piso_ia": 0.5391,
+   "banda_loo": [
+    0.005,
+    0.0717
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-05",
+   "hilo": 47975571,
+   "posts_con_texto": 318,
+   "empresas": 303,
+   "meta": 15,
+   "tasa_meta": 0.0472,
+   "textos_distintos_en_el_mes": 303,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 180,
+   "share_ia": 0.5941,
+   "abierto": false,
+   "piso_ia": 0.4959,
+   "banda_loo": [
+    0.002,
+    0.0705
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-06",
+   "hilo": 48357725,
+   "posts_con_texto": 313,
+   "empresas": 298,
+   "meta": 15,
+   "tasa_meta": 0.0479,
+   "textos_distintos_en_el_mes": 298,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 198,
+   "share_ia": 0.6644,
+   "abierto": false,
+   "piso_ia": 0.569,
+   "banda_loo": [
+    0.0021,
+    0.0703
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-07",
+   "hilo": 48747976,
+   "posts_con_texto": 259,
+   "empresas": 247,
+   "meta": 12,
+   "tasa_meta": 0.0463,
+   "textos_distintos_en_el_mes": 247,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 149,
+   "share_ia": 0.6032,
+   "abierto": false,
+   "piso_ia": 0.4983,
+   "banda_loo": [
+    0.0018,
+    0.0709
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-08",
+   "hilo": 49156683,
+   "posts_con_texto": 227,
+   "empresas": 217,
+   "meta": 10,
+   "tasa_meta": 0.0441,
+   "textos_distintos_en_el_mes": 217,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 156,
+   "share_ia": 0.7189,
+   "abierto": false,
+   "piso_ia": 0.6118,
+   "banda_loo": [
+    0.0015,
+    0.0716
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-09",
+   "hilo": 49522897,
+   "posts_con_texto": 249,
+   "empresas": 241,
+   "meta": 8,
+   "tasa_meta": 0.0321,
+   "textos_distintos_en_el_mes": 241,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 162,
+   "share_ia": 0.6722,
+   "abierto": false,
+   "piso_ia": 0.5548,
+   "banda_loo": [
+    0.0023,
+    0.073
+   ],
+   "deriva": false
+  },
+  {
+   "mes": "2026-10",
+   "hilo": 49922569,
+   "posts_con_texto": 266,
+   "empresas": 255,
+   "meta": 11,
+   "tasa_meta": 0.0414,
+   "textos_distintos_en_el_mes": 255,
+   "dup_dentro_del_mes": 0,
+   "menciona_ia": 158,
+   "share_ia": 0.6196,
+   "abierto": true,
+   "piso_ia": 0.6196,
+   "banda_loo": [
+    0.0031,
+    0.0712
+   ],
+   "deriva": false
+  }
+ ]
+}

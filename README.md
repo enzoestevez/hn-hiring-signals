@@ -7,7 +7,10 @@ hiring for AI and data roles actually ask for, and has it changed?**
 Not scraped opinions. Not a survey. The raw text of what companies wrote when
 they were spending money to hire.
 
-> **Status: stages 1–3 of 7 complete. Total cost: USD 0.00.**
+> **Status: stages 1–6 of 7 complete. Total cost: USD 0.00.**
+>
+> **Live panel:** [`docs/panel/`](docs/panel/) — rebuilt automatically on the
+> 2nd of every month by [`.github/workflows/mensual.yml`](.github/workflows/mensual.yml).
 >
 > **Headline result:** the published count of 3,909 hiring posts reproduces —
 > 3,907 by hand-labelled stratified sample, 3,903 by a rules classifier — and
@@ -86,10 +89,10 @@ breaking terms of service cannot be published or defended in an interview.
 | 1 | **Raw corpus** | every top-level post from 13 threads, stored verbatim, resumable, counted | **built** |
 | 2 | **Human ceiling** | a hand-labelled sample, double-labelled blind, to measure how well *I* can do this task | **built** — `es_empresa` kappa **0.89**; `pide_ia`, `n_puestos` and `visa` fail their ceiling and are dropped |
 | 3 | **Measured extraction** | structured fields per post, with per-field precision and recall against the labelled set | **built** — rules only, no LLM: kappa **0.870** on held-out, census **3,903** |
-| 4 | **Unattended monthly run** | GitHub Actions cron: new thread each month, extracted, with the run log as the audit trail | not started |
-| 5 | **The AI/data segment** | what those companies ask for, and how it moved across 13 months | not started |
-| 6 | **Published panel** | the numbers, with the measurement error shown next to each one | not started |
-| 7 | **Self-drift detection** | the pipeline flagging when its own accuracy degrades on new months | not started |
+| 4 | **Unattended monthly run** | GitHub Actions cron: new thread each month, extracted, with the run log as the audit trail | **built** — `src/mensual.py`, monthly cron, commits the data and fails red on a broken run |
+| 5 | **The AI/data segment** | what those companies ask for, and how it moved across 13 months | **built, and the answer is "cannot be determined"** — the +0.92 pts/month trend does not survive the measured survivorship confound |
+| 6 | **Published panel** | the numbers, with the measurement error shown next to each one | **built** — `docs/panel/` |
+| 7 | **Self-drift detection** | the pipeline flagging when its own accuracy degrades on new months | **partial** — health checks catch breakage; with 12 months of history the 3σ band only fires above 7.1% meta-comments, and the panel says so instead of hiding it |
 
 Stage 2 comes before stage 3 on purpose. **You cannot report extraction accuracy
 without a ceiling to measure it against**, and in the first project that ceiling
@@ -116,7 +119,12 @@ Three findings that were not in the plan:
 2. **17% of the corpus is republished text.** That turns the corpus into a
    free consistency instrument the design never planned for: identical text
    with opposite labels is a guaranteed error, no second annotator required.
-3. **No LLM was needed.** A 180-line deterministic classifier lands inside the
+3. **A significant trend that cannot be claimed.** AI vocabulary in hiring
+   posts rises +0.92 points/month (t=3.49) — a headline most dashboards would
+   publish. Newer threads lose more posts to deletion, and a deleted post has
+   no text to check. Assume *no* deleted post mentioned AI and the slope falls
+   to +0.34 (t=1.23, not significant). The panel draws both lines.
+4. **No LLM was needed.** A 180-line deterministic classifier lands inside the
    human interval. The decision rule for that was registered in advance.
 
 ## What is built

@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Señales de contratación en Hacker News</title>
+<meta name="description" content="Panel medido sobre 13 hilos de Ask HN: Who is hiring?. Cada número con su error de medición al lado.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>📐</text></svg>">
+<style>
+/* Cromo: la paleta del portfolio de Enzo, para que se lea como un sistema.
+   Series: los slots validados del método de dataviz (blue/orange). Las de
+   una sola serie usan el verde de marca: sin pares no hay riesgo CVD. */
+:root{
+  color-scheme: light;
+  --bg:#faf8f2; --fg:#16242b; --muted:#5c6e77; --line:#e3ded2;
+  --panel:#edf0f3; --panel2:#e3e9ee; --brand:#185e57; --surface:#fcfcfb;
+  --s1:#2a78d6; --s2:#eb6834; --warn:#9c5f52;
+  --font-d:"Newsreader",Georgia,"Times New Roman",serif;
+  --font-s:"Inter",ui-sans-serif,system-ui,sans-serif;
+  --font-m:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  color-scheme: dark;
+  --bg:#0e1317; --fg:#eaf0f2; --muted:#8fa3ac; --line:#222d34;
+  --panel:#141c21; --panel2:#19242a; --brand:#6fd9cb; --surface:#141b20;
+  --s1:#3987e5; --s2:#d95926; --warn:#d4705f;
+}}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0e1317; --fg:#eaf0f2; --muted:#8fa3ac; --line:#222d34;
+  --panel:#141c21; --panel2:#19242a; --brand:#6fd9cb; --surface:#141b20;
+  --s1:#3987e5; --s2:#d95926; --warn:#d4705f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-s);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-d);font-weight:400;letter-spacing:-.012em;
+  line-height:1.15;color:var(--fg);margin:0}
+.shell{max-width:68rem;margin:0 auto;padding:0 1rem}
+@media(min-width:640px){.shell{padding:0 1.5rem}}
+header.top{border-bottom:1px solid var(--line);padding:2.5rem 0 2rem;margin-bottom:2rem}
+.eyebrow{font-size:.7rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0}
+.lede{max-width:44rem;color:var(--muted);margin:.9rem 0 0}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.tile{background:var(--panel);border-radius:.8rem;padding:1.1rem 1.2rem}
+.tile .n{font-family:var(--font-d);font-size:2.1rem;line-height:1;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;color:var(--brand)}
+.tile .k{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.tile .e{font-size:.78rem;color:var(--muted);margin-top:.45rem;line-height:1.4}
+section{margin:2.75rem 0}
+.card{background:var(--panel);border-radius:.9rem;padding:1.25rem}
+@media(min-width:640px){.card{padding:1.6rem}}
+figure{margin:0}
+figcaption{font-size:.82rem;color:var(--muted);margin-top:.7rem;max-width:46rem}
+.legend{display:flex;flex-wrap:wrap;gap:1rem;margin:.1rem 0 .9rem;font-size:.8rem}
+.legend span{display:inline-flex;align-items:center;gap:.4rem;color:var(--muted)}
+.sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line)}
+th{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-m);font-size:.8rem}
+.tag{display:inline-block;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.15rem .5rem;border-radius:999px;background:var(--panel2);color:var(--muted)}
+.tag.no{color:var(--warn)}
+.ok{color:var(--brand)} .no{color:var(--warn)}
+.note{border-left:3px solid var(--brand);padding:.2rem 0 .2rem 1rem;margin:1.1rem 0;color:var(--muted);font-size:.9rem}
+footer{border-top:1px solid var(--line);margin-top:3rem;padding:1.5rem 0 3rem;font-size:.8rem;color:var(--muted)}
+.toggle{position:absolute;top:1rem;right:1rem;background:none;border:1px solid var(--line);
+  color:var(--muted);border-radius:999px;width:2rem;height:2rem;cursor:pointer;font-size:.9rem}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--fg);
+  border:1px solid var(--line);border-radius:.5rem;padding:.45rem .6rem;font-size:.78rem;
+  box-shadow:0 6px 20px rgba(0,0,0,.14);opacity:0;transition:opacity .1s;z-index:9;
+  font-variant-numeric:tabular-nums;max-width:15rem}
+details{margin-top:.8rem}summary{cursor:pointer;font-size:.82rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<button class="toggle" id="tg" aria-label="Cambiar tema">◐</button>
+<div class="shell">
+
+<header class="top">
+  <p class="eyebrow">Panel medido · actualización mensual automática</p>
+  <h1 style="font-size:clamp(1.7rem,4.2vw,2.5rem);margin-top:.6rem">
+    Qué piden las empresas que contratan en Hacker News</h1>
+  <p class="lede" id="lede">Cargando…</p>
+</header>
+
+<section>
+  <div class="grid" id="tiles"></div>
+  <div class="note">
+    Cada número de arriba lleva su error al lado. El que no tiene validación
+    está marcado como tal, no escondido: es la diferencia entre un panel y
+    una captura de pantalla con números grandes.
+  </div>
+</section>
+
+<section>
+  <h2 style="font-size:1.35rem">Posts de contratación por mes</h2>
+  <p class="lede" style="margin-bottom:1.1rem">De los 13 hilos mensuales. El último está
+  abierto, así que todavía suma posts.</p>
+  <div class="card"><figure>
+    <div id="c1"></div>
+    <figcaption id="f1"></figcaption>
+  </figure></div>
+</section>
+
+<section>
+  <h2 style="font-size:1.35rem">Vocabulario de IA: la tendencia que no se puede afirmar</h2>
+  <p class="lede" style="margin-bottom:1.1rem">La serie observada sube. Pero los hilos
+  viejos perdieron menos posts que los nuevos, y un post borrado no tiene texto que
+  revisar. La línea de abajo supone que <em>ningún</em> post borrado mencionaba IA —
+  el supuesto más favorable a esa explicación alternativa.</p>
+  <div class="card"><figure>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s1)"></i>observado</span>
+      <span><i class="sw" style="background:var(--s2)"></i>peor caso (todo lo borrado, sin IA)</span>
+    </div>
+    <div id="c2"></div>
+    <figcaption id="f2"></figcaption>
+  </figure></div>
+</section>
+
+<section>
+  <h2 style="font-size:1.35rem">Salud del pipeline</h2>
+  <p class="lede" style="margin-bottom:1.1rem">Lo que un proceso desatendido necesita
+  de verdad no es detectar que el mercado se movió medio punto, sino darse cuenta de
+  que se rompió.</p>
+  <div class="card">
+    <div id="salud"></div>
+    <div id="c3" style="margin-top:1.3rem"></div>
+    <figcaption id="f3"></figcaption>
+  </div>
+</section>
+
+<section>
+  <h2 style="font-size:1.35rem">Techo humano: qué se puede medir y qué no</h2>
+  <p class="lede" style="margin-bottom:1.1rem">80 posts etiquetados dos veces a ciegas.
+  A un modelo no se le puede exigir más consistencia que la de la referencia contra la
+  que se lo mide.</p>
+  <div class="card"><table id="techo"></table>
+  <details><summary>Por qué tres campos quedaron afuera</summary>
+  <div style="font-size:.86rem;color:var(--muted);margin-top:.7rem">
+  <p><strong>pide_ia</strong> — la discrepancia es direccional (10 arriba contra 2 abajo,
+  McNemar p=0,039). La definición incluía "data engineering" y una cláusula compuesta;
+  casi todo post largo toca algo de eso. El defecto es de la definición, no del etiquetador.</p>
+  <p><strong>n_puestos</strong> — la guía se contradecía sola: "sinónimos → 1" contra
+  "distinto nivel → 2". El patrón más común del corpus dispara las dos reglas.</p>
+  <p><strong>visa</strong> — el 94,1% de los posts no lo menciona. Acuerdo crudo 96,4%
+  con kappa −0,01: un umbral que se cumple etiquetando sin mirar la pantalla.</p>
+  </div></details></div>
+</section>
+
+<section>
+  <h2 style="font-size:1.35rem">Qué NO hace este panel</h2>
+  <div class="card" style="font-size:.92rem;color:var(--muted)">
+    <p style="margin-top:0"><strong>No dice que el análisis publicado esté mal.</strong>
+    Su conteo de posts se reproduce tres veces. Lo que nunca existió es su número de
+    <em>empresas</em>.</p>
+    <p><strong>No mide si un puesto pide IA.</strong> Ese juicio no pasó su techo humano
+    (kappa 0,38). Lo que se mide acá es mecánico: si el texto menciona vocabulario de IA.
+    Son dos cosas distintas y coinciden solo el 70,6% de las veces.</p>
+    <p><strong>El clasificador no reemplaza a una persona post por post:</strong> se
+    equivoca en ~5,3%. Lo que reproduce es el agregado, y lo hace porque los errores en
+    las dos direcciones se cancelan, no porque acierte.</p>
+    <p style="margin-bottom:0"><strong>No se puede leer la caída de posts mensuales como
+    caída de contrataciones.</strong> El gradiente de supervivencia de los hilos viejos
+    quedó sin resolver; solo valen proporciones dentro de cada mes.</p>
+  </div>
+</section>
+
+<footer class="shell" style="padding-left:0;padding-right:0">
+  <p id="pie"></p>
+  <p>Código, datos y el registro completo de predicciones —incluidas las que fallé—
+  en el repositorio. Costo total del proyecto: USD 0,00.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const tg=document.getElementById('tg');
+try{const t=localStorage.getItem('tema'); if(t)document.documentElement.dataset.theme=t;}catch(e){}
+tg.onclick=()=>{const d=document.documentElement;
+  const dark=getComputedStyle(d).colorScheme==='dark';
+  d.dataset.theme=dark?'light':'dark';
+  try{localStorage.setItem('tema',d.dataset.theme)}catch(e){}
+  render();};
+
+const tip=document.getElementById('tip');
+const showTip=(e,h)=>{tip.innerHTML=h;tip.style.opacity=1;
+  const r=tip.getBoundingClientRect();
+  tip.style.left=Math.min(e.clientX+12,innerWidth-r.width-8)+'px';
+  tip.style.top=Math.max(e.clientY-r.height-12,8)+'px';};
+const hideTip=()=>tip.style.opacity=0;
+
+const nf=n=>n.toLocaleString('es-AR');
+const pf=n=>(n*100).toFixed(1).replace('.',',')+'%';
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const mesCorto=m=>{const [a,b]=m.split('-');return ['','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][+b]+' '+a.slice(2);};
+
+let D=null;
+
+function barras(el,datos,{alto=230,color,fmt=nf,etiq}={}){
+  const W=760,H=alto,ml=44,mr=8,mt=14,mb=34;
+  // Escala con pasos redondos: un eje que dice 420,12 delata que nadie lo miró.
+  // Se parte del máximo REAL (sin padding) y se busca el paso redondo más chico
+  // que lo cubra en 4 o 5 tramos, en vez de fijar 4 y estirar la escala.
+  const bruto=Math.max(...datos.map(d=>d.v));
+  const mag=Math.pow(10,Math.floor(Math.log10(bruto/4)));
+  const paso=[1,2,2.5,5,10].map(k=>k*mag).find(k=>bruto/k<=5)||10*mag;
+  const ntick=Math.ceil(bruto/paso), max=paso*ntick;
+  const bw=(W-ml-mr)/datos.length;
+  const y=v=>mt+(H-mt-mb)*(1-v/max);
+  let g='';
+  for(let i=0;i<=ntick;i++){const v=paso*i;
+    g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${cssv('--line')}" stroke-width="1"/>
+        <text x="${ml-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="${cssv('--muted')}">${fmt(Math.round(v))}</text>`;}
+  const b=datos.map((d,i)=>{
+    const h=Math.max(H-mb-y(d.v),2),x=ml+i*bw+bw*0.18,w=bw*0.64;
+    return `<rect x="${x}" y="${y(d.v)}" width="${w}" height="${h}" rx="4"
+      fill="${d.sub?cssv('--panel2'):color}" data-i="${i}"/>`;}).join('');
+  const lx=datos.map((d,i)=>i%2===0?`<text x="${ml+i*bw+bw/2}" y="${H-12}" text-anchor="middle"
+      font-size="10.5" fill="${cssv('--muted')}">${mesCorto(d.m)}</text>`:'').join('');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${etiq||''}">${g}${b}${lx}</svg>`;
+  el.querySelectorAll('rect').forEach(r=>{
+    r.style.cursor='crosshair';
+    r.addEventListener('pointermove',e=>{const d=datos[+r.dataset.i];
+      showTip(e,`<b>${mesCorto(d.m)}</b><br>${d.tip}`)});
+    r.addEventListener('pointerleave',hideTip);
+    r.addEventListener('pointerdown',e=>{const d=datos[+r.dataset.i];
+      showTip(e,`<b>${mesCorto(d.m)}</b><br>${d.tip}`)});
+  });
+}
+
+function lineas(el,series,datos,{alto=250,fmt=pf,etiq}={}){
+  const W=760,H=alto,ml=48,mr=46,mt=16,mb=34;
+  const vals=series.flatMap(s=>datos.map(d=>d[s.k]));
+  const lo=Math.min(...vals)*0.9,hi=Math.max(...vals)*1.06;
+  const x=i=>ml+(W-ml-mr)*(datos.length>1?i/(datos.length-1):.5);
+  const y=v=>mt+(H-mt-mb)*(1-(v-lo)/(hi-lo));
+  let g='';
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;
+    g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${cssv('--line')}" stroke-width="1"/>
+        <text x="${ml-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="${cssv('--muted')}">${fmt(v)}</text>`;}
+  let p='';
+  series.forEach(s=>{
+    const c=cssv(s.c);
+    const d=datos.map((r,i)=>`${i?'L':'M'}${x(i)},${y(r[s.k])}`).join(' ');
+    p+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    p+=datos.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r[s.k])}" r="4" fill="${c}"
+         stroke="${cssv('--panel')}" stroke-width="2"/>`).join('');
+    const last=datos[datos.length-1];
+    p+=`<text x="${W-mr+6}" y="${y(last[s.k])+4}" font-size="11" fill="${c}" font-weight="600">${fmt(last[s.k])}</text>`;
+  });
+  const lx=datos.map((d,i)=>i%2===0?`<text x="${x(i)}" y="${H-12}" text-anchor="middle"
+      font-size="10.5" fill="${cssv('--muted')}">${mesCorto(d.mes)}</text>`:'').join('');
+  const hit=datos.map((d,i)=>`<rect x="${x(i)-18}" y="${mt}" width="36" height="${H-mt-mb}"
+      fill="transparent" data-i="${i}"/>`).join('');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${etiq||''}">${g}${p}${hit}</svg>`;
+  el.querySelectorAll('rect[data-i]').forEach(r=>{
+    const f=e=>{const d=datos[+r.dataset.i];
+      showTip(e,`<b>${mesCorto(d.mes)}</b><br>`+series.map(s=>
+        `<span style="color:${cssv(s.c)}">■</span> ${s.n}: ${fmt(d[s.k])}`).join('<br>'));};
+    r.addEventListener('pointermove',f);r.addEventListener('pointerdown',f);
+    r.addEventListener('pointerleave',hideTip);
+  });
+}
+
+function render(){
+  if(!D)return;
+  const c=D.corpus,h=D.referencia_humana,t=D.tendencia_ia,cl=D.clasificador;
+  document.getElementById('lede').innerHTML=
+    `${c.meses} hilos mensuales, ${nf(c.posts_con_texto)} posts con texto. Cada número
+     lleva su error de medición al lado — incluido el que no se pudo validar.`;
+
+  document.getElementById('tiles').innerHTML=[
+    {k:'Posts de contratación',n:nf(c.empresas),
+     e:`por reglas · a mano: ${nf(h.estimacion)} [${nf(h.ic95[0])}–${nf(h.ic95[1])}] · error por post ${pf(cl.error_por_post)}`},
+    {k:'Empresas distintas',n:'~'+nf(c.empresas_distintas),
+     e:`el ${pf(c.repeticion)} del corpus es texto republicado. Es la magnitud que nadie había contado.`},
+    {k:'Análisis publicado',n:nf(D.publicado.empresas),
+     e:'cuenta posts, no empresas. Su autor declaró que no lo validó contra una muestra a mano.'},
+    {k:'Menciona vocabulario IA',n:pf(c.share_ia_global),
+     e:'NO VALIDADO · coincide con el juicio humano solo el 70,6% de las veces'},
+  ].map(x=>`<div class="tile"><p class="k">${x.k}</p><div class="n">${x.n}</div>
+      <p class="e">${x.e}</p></div>`).join('');
+
+  const m=D.meses;
+  barras(document.getElementById('c1'),m.map(d=>({m:d.mes,v:d.empresas,sub:d.abierto,
+    tip:`${nf(d.empresas)} de contratación<br>${d.meta} meta-comentarios (${pf(d.tasa_meta)})${d.abierto?'<br><i>hilo abierto</i>':''}`})),
+    {color:cssv('--brand'),etiq:'Posts de contratación por mes'});
+  document.getElementById('f1').textContent=
+    `Entre ${nf(Math.min(...m.filter(d=>!d.abierto).map(d=>d.empresas)))} y `+
+    `${nf(Math.max(...m.map(d=>d.empresas)))} por mes. La barra clara es el hilo abierto.`;
+
+  const cer=m.filter(d=>!d.abierto);
+  lineas(document.getElementById('c2'),
+    [{k:'share_ia',n:'observado',c:'--s1'},{k:'piso_ia',n:'peor caso',c:'--s2'}],
+    cer,{etiq:'Vocabulario de IA, observado y peor caso'});
+  document.getElementById('f2').innerHTML=
+    `Observada <b>${t.pendiente_observada_pts_mes>0?'+':''}${String(t.pendiente_observada_pts_mes).replace('.',',')} pts/mes</b>
+     (t=${String(t.t_observado).replace('.',',')}, significativa).
+     Peor caso <b>${t.pendiente_peor_caso_pts_mes>0?'+':''}${String(t.pendiente_peor_caso_pts_mes).replace('.',',')} pts/mes</b>
+     (t=${String(t.t_peor_caso).replace('.',',')}, <span class="no">no significativa</span>).
+     <br><b>Conclusión: no se puede afirmar que el vocabulario de IA haya subido.</b>
+     La dirección probablemente sea positiva; la magnitud no está identificada.`;
+
+  const s=D.salud;
+  document.getElementById('salud').innerHTML=`<table>
+    <tr><th>chequeo</th><th style="text-align:right">estado</th></tr>
+    ${[['Hilo del mes encontrado',s.hilo_del_mes_encontrado,true],
+       ['Volumen de posts dentro de banda',!s.posts_fuera_de_banda,true],
+       ['Clasificación no degenerada',!s.clasificacion_degenerada,true],
+       ['Meses marcados por deriva',s.meses_con_deriva.length===0?'ninguno':s.meses_con_deriva.join(', '),null]]
+      .map(([k,v,b])=>`<tr><td>${k}</td><td class="n ${b===null?'':(v?'ok':'no')}">${
+        b===null?v:(v?'OK':'REVISAR')}</td></tr>`).join('')}</table>
+    <p style="font-size:.82rem;color:var(--muted);margin:.9rem 0 0">${s.sensibilidad_deriva}</p>`;
+
+  lineas(document.getElementById('c3'),[{k:'tasa_meta',n:'tasa de meta-comentarios',c:'--s1'}],
+    cer,{alto:190,etiq:'Tasa de meta-comentarios por mes'});
+  document.getElementById('f3').textContent=
+    'La banda de cada mes se calcula dejando ese mes afuera. Incluirlo haría que casi '+
+    'nunca pueda caerse de su propia banda, que es el mismo error que evaluar un modelo '+
+    'con sus datos de entrenamiento.';
+
+  document.getElementById('techo').innerHTML=`
+    <tr><th>campo</th><th style="text-align:right">acuerdo</th><th style="text-align:right">kappa</th><th>¿sirve?</th></tr>
+    ${D.techo.map(r=>`<tr><td><code style="font-family:var(--font-m);font-size:.8rem">${r.campo}</code></td>
+      <td class="n">${r.acuerdo}</td><td class="n">${r.kappa}</td>
+      <td><span class="tag ${r.ok?'':'no'}">${r.ok||'no'}</span></td></tr>`).join('')}`;
+
+  document.getElementById('pie').innerHTML=
+    `Generado el ${new Date(D.generado).toLocaleString('es-AR',{dateStyle:'long',timeStyle:'short'})}.
+     Se actualiza solo el día 2 de cada mes, cuando el hilo nuevo ya está publicado.`;
+}
+
+(async()=>{
+  try{
+    D = window.__DATOS__ || await (await fetch('datos.json')).json();
+  }catch(e){
+    document.getElementById('lede').textContent='No pude cargar datos.json. Serví la carpeta por HTTP (python -m http.server).';
+    return;
+  }
+  D.corpus.share_ia_global = D.meses.reduce((a,b)=>a+b.menciona_ia,0)/D.meses.reduce((a,b)=>a+b.empresas,0);
+  D.techo=[{campo:'es_empresa',acuerdo:'95,0%',kappa:'0,89',ok:'sí'},
+    {campo:'remoto',acuerdo:'83,6%',kappa:'0,77',ok:'con reservas'},
+    {campo:'seniority',acuerdo:'78,2%',kappa:'0,61',ok:'marginal'},
+    {campo:'n_puestos',acuerdo:'72,7%',kappa:'0,58',ok:''},
+    {campo:'pide_ia',acuerdo:'70,9%',kappa:'0,38',ok:''},
+    {campo:'visa',acuerdo:'96,4%',kappa:'−0,01',ok:''}];
+  render();
+  addEventListener('resize',()=>clearTimeout(window._r)||(window._r=setTimeout(render,150)));
+})();
+</script>
+</body>
+</html>
