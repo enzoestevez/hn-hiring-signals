@@ -1,5 +1,5 @@
 {
- "generado": "2026-10-27T20:37:48+00:00",
+ "generado": "2026-10-28T12:26:04+00:00",
  "corpus": {
   "posts_con_texto": 4054,
   "empresas": 3903,
@@ -58,6 +58,26 @@
   "meses_con_deriva": [],
   "sensibilidad_deriva": "con 12 meses de historia la banda de 3 sigma recien dispara arriba del 7% de meta-comentarios, contra un maximo observado de 5,1%. Detecta roturas, no cambios de mercado."
  },
+ "corridas": [
+  {
+   "iniciada": "2026-10-28T12:25:59+00:00",
+   "duracion_s": 5.3,
+   "entorno": "local",
+   "commit": null,
+   "refresco_ok": null,
+   "posts_antes": 4054,
+   "posts_despues": 4054,
+   "posts_nuevos": 0,
+   "hilos": 13,
+   "ultimo_mes": "2026-10",
+   "empresas": 3903,
+   "empresas_distintas": 3045,
+   "tasa_meta": 0.0372,
+   "detectores_sonaron": [],
+   "cola_revision": 8,
+   "salud_ok": true
+  }
+ ],
  "meses": [
   {
    "mes": "2025-10",

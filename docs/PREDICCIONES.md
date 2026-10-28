@@ -1511,3 +1511,64 @@ diagnóstico ya escrito.
   determinista. Pasa a ser el chequeo central el día que entre un LLM.
 - **Detector 4** (cola de revisión): ~14 posts de baja confianza por mes.
   Canario, no tasa de acierto.
+
+---
+
+# REGISTRO OPERATIVO — pre-registro 28/10/2026
+
+## Por qué existe
+
+Los cuatro proyectos prueban que sé **medir**. Ninguno prueba que sepa
+**operar**: que un sistema mío aguante meses en un entorno que no controlo.
+
+Y eso no se demuestra construyendo. Se demuestra habiendo corrido, habiendo
+fallado, y habiendo reportado qué se rompió. **El reloj ya arrancó** —el cron
+corre el 2 de cada mes— pero hasta hoy ese historial se perdía en los logs de
+GitHub Actions.
+
+Desde ahora cada corrida deja una línea en `data/corridas.jsonl` y el panel la
+muestra. En tres meses hay un registro operativo; en un año, uno que vale.
+
+## El entorno que NO controlo
+
+- La API de Hacker News puede cambiar o limitarme.
+- **El hilo puede cambiar de formato, y el 88,5% de mis decisiones dependen de
+  una sola convención de formato.**
+- El runner de GitHub Actions no es mío.
+- La cuenta `whoishiring` puede saltearse un mes.
+
+## Expectativas registradas para los próximos 3 meses
+
+| magnitud | predicción | mecanismo |
+|---|---|---|
+| duración de la corrida | **< 10 min** | ~300 posts nuevos a 8 hilos en paralelo, más el reproceso del corpus entero |
+| costo | **USD 0,00** | Actions es gratis e ilimitado en repos públicos |
+| posts nuevos por mes | **230–390** | es el rango observado en los 12 meses cerrados |
+| detectores que suenan en un mes normal | **0** | las bandas se calibraron sobre esos mismos 12 meses |
+| **corridas fallidas en 3 meses** | **al menos 1** | los sistemas desatendidos fallan; predecir cero sería predecir que este es especial |
+
+## Firmas de falla
+
+1. **Corrida de más de 30 min** → la API está limitando o se rompió la lógica
+   de reanudar y está re-bajando todo.
+2. **0 posts nuevos** con corrida exitosa → no encontró el hilo del mes. Es
+   peor que un error, porque parece que anduvo.
+3. **Más de 500 posts nuevos** → se bajó dos veces.
+4. **Todos los detectores suenan a la vez** → el problema es la banda, no el
+   mundo.
+
+## Qué decisión cambia
+
+Si un detector suena, **primero se revisa el detector, después el mundo.** Ya
+pasó: la banda de 3σ marcó 0 de 13 meses y la tentación era bajar el umbral
+hasta que sonara. No se hizo.
+
+## Lo que este registro NO va a probar
+
+Que sé trabajar adentro del sistema de otro, con alguien esperando el número.
+Eso solo lo prueba un trabajo o un cliente.
+
+Y una nota contraintuitiva que conviene dejar escrita antes de que pase:
+**un registro de tres meses sin un solo incidente prueba menos que uno con una
+falla diagnosticada.** El primero puede significar que el sistema es sólido o
+que nadie lo miró. El segundo demuestra que había alguien mirando.

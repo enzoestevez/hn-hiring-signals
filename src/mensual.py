@@ -23,6 +23,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
@@ -33,6 +34,7 @@ PANEL = os.path.join(RAIZ, "docs", "panel")
 
 sys.path.insert(0, DIR)
 from clasificar import clasificar, limpiar  # noqa: E402
+from deriva import DETECTORES, evaluar, rasgos  # noqa: E402
 
 # Vocabulario de IA. Es una definicion MECANICA y declarada, no un juicio.
 RX_IA = re.compile(
@@ -66,10 +68,20 @@ def refrescar(desde):
 
 
 def main():
+    t0 = time.perf_counter()
+    iniciada = datetime.now(timezone.utc)
+    refresco = None
+    posts_antes = 0
+    ruta_posts = os.path.join(DATOS, "posts.jsonl")
+    if os.path.exists(ruta_posts):
+        with open(ruta_posts, encoding="utf-8") as f:
+            posts_antes = sum(1 for l in f if l.strip())
+
     if "--refrescar" in sys.argv:
         i = sys.argv.index("--refrescar")
         desde = sys.argv[i + 1] if len(sys.argv) > i + 1 else "2025-10"
-        if not refrescar(desde):
+        refresco = refrescar(desde)
+        if not refresco:
             print("! bajar.py fallo. Se sigue con lo que ya hay en disco.")
 
     posts = jsonl(os.path.join(DATOS, "posts.jsonl"))
@@ -80,16 +92,20 @@ def main():
         por_mes[p["mes"]].append(p)
 
     # --- clasificar una sola vez cada post ---------------------------------
+    # rasgos() vive en deriva.py y devuelve la clasificacion MAS los rasgos que
+    # vigilan los detectores. Se llama una sola vez y sirve para las tres
+    # cosas: agregado mensual, deteccion de deriva y registro de la corrida.
     for p in posts:
-        p["_emp"], p["_motivo"] = clasificar(p.get("texto_html"))
+        p.update(rasgos(p))
         p["_ia"] = bool(RX_IA.search(limpiar(p.get("texto_html"))))
         p["_norm"] = norm(p.get("texto_html"))[:200]
 
     hoy = datetime.now(timezone.utc).strftime("%Y-%m")
+    abierto_mes = None
     meses = []
     for mes in sorted(por_mes):
         ps = por_mes[mes]
-        emp = [p for p in ps if p["_emp"]]
+        emp = [p for p in ps if p["emp"]]
         textos = Counter(p["_norm"] for p in emp)
         meses.append({
             "mes": mes,
@@ -104,9 +120,11 @@ def main():
             "share_ia": round(sum(1 for p in emp if p["_ia"]) / len(emp), 4) if emp else 0,
             "abierto": mes >= hoy,
         })
+        if mes >= hoy:
+            abierto_mes = mes
 
     # --- repeticion ENTRE meses: la magnitud "empresas" --------------------
-    emp_todos = [p for p in posts if p["_emp"]]
+    emp_todos = [p for p in posts if p["emp"]]
     distintos = len({p["_norm"] for p in emp_todos})
 
     # --- tendencia del vocabulario de IA, y su confusor ---------------------
@@ -187,6 +205,48 @@ def main():
                                 "roturas, no cambios de mercado."),
     }
 
+    # ------------------------------------------------------------------
+    # REGISTRO OPERATIVO. Una linea por corrida, append-only.
+    # Construir un sistema no prueba que sepa operarlo. Lo prueba haber
+    # corrido, haber fallado y haber reportado que se rompio. Esto es lo
+    # unico del proyecto que vale MAS con el tiempo en vez de menos.
+    # ------------------------------------------------------------------
+    # Ojo: `cerrados` aca son registros agregados del mes; deriva.evaluar
+    # espera los NOMBRES de los meses. Confundirlos tiraba un TypeError.
+    nombres_cerrados = [m["mes"] for m in cerrados]
+    sonaron = [f["detector"] for f in
+               evaluar(por_mes, nombres_cerrados[-1], nombres_cerrados)
+               if f["suena"]] if len(nombres_cerrados) >= 5 else []
+    fila = {
+        "iniciada": iniciada.isoformat(timespec="seconds"),
+        "duracion_s": round(time.perf_counter() - t0, 1),
+        "entorno": "github-actions" if os.environ.get("GITHUB_ACTIONS") else "local",
+        "commit": (os.environ.get("GITHUB_SHA") or "")[:7] or None,
+        "refresco_ok": refresco,
+        "posts_antes": posts_antes,
+        "posts_despues": len(posts),
+        "posts_nuevos": len(posts) - posts_antes,
+        "hilos": len(meses),
+        "ultimo_mes": meses[-1]["mes"] if meses else None,
+        "empresas": len(emp_todos),
+        "empresas_distintas": distintos,
+        "tasa_meta": round((len(posts) - len(emp_todos)) / len(posts), 4) if posts else None,
+        "detectores_sonaron": sonaron,
+        "cola_revision": sum(1 for p in por_mes[abierto_mes] if p["debil"]) if abierto_mes else 0,
+        "salud_ok": bool(salud["hilo_del_mes_encontrado"]
+                         and not salud["posts_fuera_de_banda"]
+                         and not salud["clasificacion_degenerada"]),
+    }
+    with open(os.path.join(DATOS, "corridas.jsonl"), "a", encoding="utf-8") as f:
+        f.write(json.dumps(fila, ensure_ascii=False) + "\n")
+    print(f"\n  registrada la corrida en data/corridas.jsonl "
+          f"({fila['duracion_s']:.0f}s, {fila['posts_nuevos']:+} posts, "
+          f"{len(sonaron)} detectores)")
+
+    # las ultimas 12 corridas van al panel
+    with open(os.path.join(DATOS, "corridas.jsonl"), encoding="utf-8") as f:
+        corridas = [json.loads(l) for l in f if l.strip()][-12:]
+
     salida = {
         "generado": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "corpus": {
@@ -231,6 +291,7 @@ def main():
                           "la tendencia sobrevive al peor caso",
         },
         "salud": salud,
+        "corridas": corridas,
         "meses": meses,
     }
 

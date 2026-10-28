@@ -42,7 +42,7 @@ jobs:
         run: |
           git config user.name  "corrida mensual"
           git config user.email "actions@github.com"
-          git add data/posts.jsonl data/hilos.json docs/panel/datos.json
+          git add data/posts.jsonl data/hilos.json data/corridas.jsonl docs/panel/datos.json
           if git diff --cached --quiet; then
             echo "sin cambios"
           else

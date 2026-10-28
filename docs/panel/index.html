@@ -134,6 +134,20 @@ details{margin-top:.8rem}summary{cursor:pointer;font-size:.82rem;color:var(--mut
 </section>
 
 <section>
+  <h2 style="font-size:1.35rem">Registro operativo</h2>
+  <p class="lede" style="margin-bottom:1.1rem">Cada corrida del cron deja una línea.
+  Construir un sistema no prueba que sepa operarlo: lo prueba haber corrido, haber
+  fallado y haber reportado qué se rompió.</p>
+  <div class="card">
+    <table id="corridas"></table>
+    <p style="font-size:.82rem;color:var(--muted);margin:.9rem 0 0">
+    <b>Un registro sin un solo incidente prueba menos que uno con una falla
+    diagnosticada.</b> El primero puede significar que el sistema es sólido o que
+    nadie lo miró; el segundo demuestra que había alguien mirando.</p>
+  </div>
+</section>
+
+<section>
   <h2 style="font-size:1.35rem">Techo humano: qué se puede medir y qué no</h2>
   <p class="lede" style="margin-bottom:1.1rem">80 posts etiquetados dos veces a ciegas.
   A un modelo no se le puede exigir más consistencia que la de la referencia contra la
@@ -328,6 +342,21 @@ function render(){
     ${D.techo.map(r=>`<tr><td><code style="font-family:var(--font-m);font-size:.8rem">${r.campo}</code></td>
       <td class="n">${r.acuerdo}</td><td class="n">${r.kappa}</td>
       <td><span class="tag ${r.ok?'':'no'}">${r.ok||'no'}</span></td></tr>`).join('')}`;
+
+  const cr=(D.corridas||[]).slice().reverse();
+  document.getElementById('corridas').innerHTML = cr.length ? `
+    <tr><th>corrida</th><th>dónde</th><th style="text-align:right">duró</th>
+        <th style="text-align:right">posts</th><th>detectores</th><th>estado</th></tr>
+    ${cr.map(r=>`<tr>
+      <td class="n" style="text-align:left">${new Date(r.iniciada).toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short'})}</td>
+      <td style="font-size:.8rem;color:var(--muted)">${r.entorno}${r.commit?' · '+r.commit:''}</td>
+      <td class="n">${r.duracion_s<60?Math.round(r.duracion_s)+' s':(r.duracion_s/60).toFixed(1)+' min'}</td>
+      <td class="n">${r.posts_nuevos>0?'+'+nf(r.posts_nuevos):'—'}</td>
+      <td class="n" style="text-align:left">${r.detectores_sonaron.length
+          ? '<span class="no">'+r.detectores_sonaron.join(', ')+'</span>' : '—'}</td>
+      <td class="n ${r.salud_ok?'ok':'no'}">${r.salud_ok?'OK':'REVISAR'}</td>
+    </tr>`).join('')}`
+    : '<tr><td style="color:var(--muted)">Todavía no corrió ninguna vez desde que existe el registro.</td></tr>';
 
   document.getElementById('pie').innerHTML=
     `Generado el ${new Date(D.generado).toLocaleString('es-AR',{dateStyle:'long',timeStyle:'short'})}.
